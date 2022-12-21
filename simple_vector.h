@@ -11,6 +11,15 @@
 
 using namespace std::literals;
 
+struct ReserveProxyObject {
+    size_t capacity_to_reserve;
+    explicit ReserveProxyObject(size_t capacity) : capacity_to_reserve(capacity) {}
+};
+
+ReserveProxyObject Reserve(size_t capacity_to_reserve) {
+    return ReserveProxyObject(capacity_to_reserve);
+}
+
 template <typename Type>
 class SimpleVector {
   public:
@@ -69,6 +78,12 @@ class SimpleVector {
         : size_(std::exchange(other.size_, 0)), 
         capacity_(std::exchange(other.capacity_, 0)),
         array_(std::move(other.array_)) {}
+
+    // 
+    explicit SimpleVector(ReserveProxyObj wrapper) {
+        capacity_ = wrapper.capacity_to_reserve;
+        Reserve(capacity_);
+    }    
 
     // Меняет значения полей двух векторов
     void swap(SimpleVector<Type>& other) noexcept {
