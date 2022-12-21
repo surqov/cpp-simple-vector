@@ -5,6 +5,8 @@
 
 int main() {
     Test1();
+    TestReserveConstructor();
+    TestReserveMethod();
     std::cout << "I'm IDLE";
     return 0;
 }

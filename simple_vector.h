@@ -11,13 +11,13 @@
 
 using namespace std::literals;
 
-struct ReserveProxyObject {
+struct ReserveProxyObj {
     size_t capacity_to_reserve;
-    explicit ReserveProxyObject(size_t capacity) : capacity_to_reserve(capacity) {}
+    explicit ReserveProxyObj(size_t capacity) : capacity_to_reserve(capacity) {}
 };
 
-ReserveProxyObject Reserve(size_t capacity_to_reserve) {
-    return ReserveProxyObject(capacity_to_reserve);
+ReserveProxyObj Reserve(size_t capacity_to_reserve) {
+    return ReserveProxyObj(capacity_to_reserve);
 }
 
 template <typename Type>
