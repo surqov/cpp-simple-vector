@@ -6,6 +6,8 @@
 #include <array>
 #include <stdexcept>
 #include <iostream>
+#include <algorithm>
+#include <vector>
 
 using namespace std::literals;
 
@@ -213,45 +215,16 @@ class SimpleVector {
     //Вставляет позицию в произвольное место (копирование, доступ через ref)
     Iterator Insert(ConstIterator position, const Type& value) {
         size_t position_offset = position - array_.Get();
-        Iterator element_position = array_.Get() + position_offset;
-        size_t new_size = size_ + 1;
-        if (new_size <= capacity_) {
-            std::copy_backward(element_position, array_.Get() + size_, array_.Get() + size_ + 1);
-            array_[position_offset] = value;
-        } else {
-            size_t new_capacity = (capacity_ != 0) ? std::max(new_size, 2 * capacity_) : new_size;
-
-            SmartPtr new_data(new_capacity);
-            std::copy(array_.Get(), element_position, new_data.Get());
-            new_data[position_offset] = value;
-            std::copy(element_position, array_.Get() + size_, new_data.Get() + position_offset + 1);
-            array_.swap(new_data);
-            capacity_ = new_capacity;
-        }
-        size_ = new_size;
+        PushBack(value);
+        std::rotate(array_.Get() + position_offset, end() - 1, end());
         return array_.Get() + position_offset;
     }
 
-    //Вставляет позицию в произвольное место (перемещение, доуступ через rvalue)
+    //Вставляет позицию в произвольное место (перемещение, доступ через rvalue)
     Iterator Insert(ConstIterator position, Type&& value) {
         size_t position_offset = position - array_.Get();
-        Iterator element_position = array_.Get() + position_offset;
-
-        size_t new_size = size_ + 1;
-        if (new_size <= capacity_) {
-            std::move_backward(element_position, array_.Get() + size_, array_.Get() + size_ + 1);
-            array_[position_offset] = std::move(value);
-        } else {
-            size_t new_capacity = (capacity_ != 0) ? std::max(new_size, 2u * capacity_) : new_size;
-
-            SmartPtr new_data(new_capacity);
-            std::move(array_.Get(), element_position, new_data.Get());
-            new_data[position_offset] = std::move(value);
-            std::move(element_position, array_.Get() + size_, new_data.Get() + position_offset + 1);
-            array_.swap(new_data);
-            capacity_ = new_capacity;
-        }
-        size_ = new_size;
+        PushBack(std::move(value));
+        std::rotate(array_.Get() + position_offset, end() - 1, end());
         return array_.Get() + position_offset;
     }
 

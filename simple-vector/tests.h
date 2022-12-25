@@ -116,6 +116,10 @@ inline void Test1() {
             assert(v.begin());
             assert(*v.begin() == 42);
             assert(v.end() == v.begin() + v.GetSize());
+            int j = 144;
+            v.Insert(v.begin(),j);
+            v.Print();
+            assert(v[0] == j);
         }
     }
 
