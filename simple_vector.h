@@ -2,12 +2,10 @@
 
 #include "array_ptr.h"
 
-#include <cassert>
 #include <initializer_list>
 #include <array>
 #include <stdexcept>
 #include <iostream>
-#include <iterator>
 
 using namespace std::literals;
 
@@ -32,7 +30,15 @@ class SimpleVector {
     SmartPtr array_{nullptr};
 
     template <class InputIterator>
-    void Assign(InputIterator begin_, InputIterator end_) {
+    void AssignByMove(InputIterator begin_, InputIterator end_) {
+        size_t size = std::distance(begin_, end_);
+        SimpleVector<Type> temp_(size);
+        std::move(begin_, end_, temp_.begin());
+        swap(temp_);
+    }
+
+    template <class InputIterator>
+    void AssignByCopy(InputIterator begin_, InputIterator end_) {
         size_t size = std::distance(begin_, end_);
         SimpleVector<Type> temp_(size);
         std::copy(begin_, end_, temp_.begin());
@@ -63,14 +69,14 @@ class SimpleVector {
             std::fill(array_.Get(), array_.Get() + size_, value);
     }
 
-    // Создаёт вектор из std::initializer_list
+    // Перемещает значения из std::initializer_list 
     SimpleVector(std::initializer_list<Type> init) noexcept {
-        Assign(init.begin(), init.end());
+        AssignByMove(init.begin(), init.end());
     }
 
     // Копирует значения вектора other в *this
     SimpleVector(const SimpleVector<Type>& other) noexcept {
-        Assign(other.begin(), other.end());
+        AssignByCopy(other.begin(), other.end());
     }
 
     // Инициализирует объект по rvalue ref, только зачем?
@@ -151,20 +157,20 @@ class SimpleVector {
         size_ = 0;
     }
 
-    Iterator Erase(ConstIterator position) {
-        std::move(std::next((Iterator)position), end(), Iterator(position));
+    Iterator Erase(Iterator position) {
+        std::move(std::next(position), end(), position);
         --size_;
-        return Iterator(position);
+        return position;
     }
 
     // Изменяет размер массива.
     // При увеличении размера новые элементы получают значение по умолчанию для типа Type
     void Resize(size_t new_size) {
-        if (new_size > size_ && new_size < capacity_) {
-            std::fill(array_.Get() + size_, array_.Get() + new_size, Type());
-        } else if (new_size > capacity_){
+        if (new_size > capacity_){
             size_t new_capacity_ = std::max(capacity_ * 2, new_size);
             ResizeByMove(new_capacity_);
+        } else if (new_size > size_) {
+            std::generate(array_.Get() + size_, array_.Get() + new_size, [] {return Type();});
         }
         size_ = new_size;
     }
@@ -180,7 +186,7 @@ class SimpleVector {
         ++size_;
     }
 
-    // Вставляет rvalue в конец массива
+    // Вставляет по rvalue в конец массива
     void PushBack(Type&& value) {
         size_t new_size = size_ + 1;
         if (new_size > capacity_) {
@@ -195,9 +201,7 @@ class SimpleVector {
     void PopBack() noexcept {
         if (!IsEmpty()) {
             --size_;
-        } else {
-            throw std::out_of_range("Vector is empty"s);
-        }
+        } 
     }
 
     void Reserve(size_t size) {
@@ -206,10 +210,9 @@ class SimpleVector {
         }
     }
 
-    //Вставляет позицию в произвольное место
+    //Вставляет позицию в произвольное место (копирование, доступ через ref)
     Iterator Insert(ConstIterator position, const Type& value) {
         size_t position_offset = position - array_.Get();
-        //assert(position_offset <= size_);
         Iterator element_position = array_.Get() + position_offset;
         size_t new_size = size_ + 1;
         if (new_size <= capacity_) {
@@ -229,9 +232,9 @@ class SimpleVector {
         return array_.Get() + position_offset;
     }
 
+    //Вставляет позицию в произвольное место (перемещение, доуступ через rvalue)
     Iterator Insert(ConstIterator position, Type&& value) {
         size_t position_offset = position - array_.Get();
-        //assert(position_offset <= size_);
         Iterator element_position = array_.Get() + position_offset;
 
         size_t new_size = size_ + 1;
@@ -273,7 +276,7 @@ class SimpleVector {
     // Возвращает итератор на элемент, следующий за последним
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator end() const noexcept {
-        return size_ > 0 ? &array_[size_]: nullptr;
+        return size_ > 0 ? &array_[size_] : nullptr;
     }
 
     // Возвращает константный итератор на начало массива
@@ -285,7 +288,7 @@ class SimpleVector {
     // Возвращает итератор на элемент, следующий за последним
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator cend() const noexcept {
-        return size_ > 0 ? &array_[size_]: nullptr;
+        return size_ > 0 ? &array_[size_] : nullptr;
     }
 
     void Print() {

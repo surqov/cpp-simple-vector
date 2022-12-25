@@ -7,6 +7,14 @@ int main() {
     Test1();
     TestReserveConstructor();
     TestReserveMethod();
+    TestTemporaryObjConstructor();
+    TestTemporaryObjOperator();
+    TestNamedMoveConstructor();
+    TestNamedMoveOperator();
+    TestNoncopiableMoveConstructor();
+    TestNoncopiablePushBack();
+    TestNoncopiableInsert();
+    TestNoncopiableErase();
     std::cout << "I'm IDLE";
     return 0;
 }
