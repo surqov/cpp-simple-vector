@@ -1,6 +1,6 @@
 #pragma once
 
-#include "array_ptr.h"
+#include "ArrayPtr.h"
 
 #include <initializer_list>
 #include <array>
@@ -25,7 +25,7 @@ class SimpleVector {
   public:
     using Iterator = Type*;
     using ConstIterator = const Type*;
-    using SmartPtr = Array_ptr<Type>;
+    using SmartPtr = ArrayPtr<Type>;
   private:
     size_t size_ = 0;
     size_t capacity_ = 0;
@@ -126,11 +126,13 @@ class SimpleVector {
 
     // Возвращает ссылку на элемент с индексом index
     Type& operator[](size_t index) noexcept {
+        assert(index < size_);
         return array_[index];
     }
 
     // Возвращает константную ссылку на элемент с индексом index
     const Type& operator[](size_t index) const noexcept {
+        assert(index < size_);
         return array_[index];
     }
 
@@ -160,6 +162,7 @@ class SimpleVector {
     }
 
     Iterator Erase(Iterator position) {
+        assert(position >= begin() && position <= end());
         std::move(std::next(position), end(), position);
         --size_;
         return position;
@@ -214,6 +217,7 @@ class SimpleVector {
 
     //Вставляет позицию в произвольное место (копирование, доступ через ref)
     Iterator Insert(ConstIterator position, const Type& value) {
+        assert(position >= begin() && position <= end());
         size_t position_offset = position - array_.Get();
         PushBack(value);
         std::rotate(array_.Get() + position_offset, end() - 1, end());
@@ -222,6 +226,7 @@ class SimpleVector {
 
     //Вставляет позицию в произвольное место (перемещение, доступ через rvalue)
     Iterator Insert(ConstIterator position, Type&& value) {
+        assert(position >= begin() && position <= end());
         size_t position_offset = position - array_.Get();
         PushBack(std::move(value));
         std::rotate(array_.Get() + position_offset, end() - 1, end());
