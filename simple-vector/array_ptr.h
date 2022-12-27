@@ -16,7 +16,7 @@ class ArrayPtr {
 
     explicit ArrayPtr(ValueType* value_ptr_) noexcept : ptr_to_(value_ptr_) {}; 
 
-    explicit ArrayPtr(ArrayPtr&& other) noexcept : ptr_to_(std::swap(other.ptr_to_, nullptr)) {}
+    explicit ArrayPtr(ArrayPtr&& other) noexcept : ptr_to_(std::exchange(other.ptr_to_, nullptr)) {}
 
     ArrayPtr(ArrayPtr&) = delete;
 
@@ -24,7 +24,7 @@ class ArrayPtr {
 
     ArrayPtr& operator=(ArrayPtr&& other) noexcept {
         if (this != &other)
-            ptr_to_ = std::exchange(other.ptr_to_, nullptr);
+            ptr_to_ = std::swap(other.ptr_to_, nullptr);
         return *this;
     }
 
